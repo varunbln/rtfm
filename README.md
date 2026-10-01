@@ -1,129 +1,70 @@
 <p align="center">
-  <a href="https://opencode.ai">
-    <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
-    </picture>
-  </a>
-</p>
-<p align="center">The open source AI coding agent.</p>
-<p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/anomalyco/opencode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+<pre align="center">
+      ▄    ▄▀▀
+█▀▀▀ ▀█▀▀ ▀█▀▀ █▀▄▀█
+█     █    █   █ ▀ █
+▀     ▀▀▀  ▀   ▀   ▀
+</pre>
 </p>
 
-<p align="center">
-  <a href="README.md">English</a> |
-  <a href="README.zh.md">简体中文</a> |
-  <a href="README.zht.md">繁體中文</a> |
-  <a href="README.ko.md">한국어</a> |
-  <a href="README.de.md">Deutsch</a> |
-  <a href="README.es.md">Español</a> |
-  <a href="README.fr.md">Français</a> |
-  <a href="README.it.md">Italiano</a> |
-  <a href="README.da.md">Dansk</a> |
-  <a href="README.ja.md">日本語</a> |
-  <a href="README.pl.md">Polski</a> |
-  <a href="README.ru.md">Русский</a> |
-  <a href="README.bs.md">Bosanski</a> |
-  <a href="README.ar.md">العربية</a> |
-  <a href="README.no.md">Norsk</a> |
-  <a href="README.br.md">Português (Brasil)</a> |
-  <a href="README.th.md">ไทย</a> |
-  <a href="README.tr.md">Türkçe</a> |
-  <a href="README.uk.md">Українська</a> |
-  <a href="README.bn.md">বাংলা</a> |
-  <a href="README.gr.md">Ελληνικά</a> |
-  <a href="README.vi.md">Tiếng Việt</a>
-</p>
+<p align="center"><b>A coding agent that refuses to write your code.</b></p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+rtfm is a terminal coding agent with one rule: **it never writes a line of code.** You tell it what you're building. It tells you what to write next, explains why, and links the exact section of the docs, or the one Stack Overflow answer you needed. You type the code.
 
----
+It's for programmers who want to stay programmers. You get the speed of having a senior engineer next to you, and you keep the part where you actually learn the thing.
 
-### Installation
+```
+you   › how do I cancel an in-flight fetch when the component unmounts?
 
-```bash
-# YOLO
-curl -fsSL https://opencode.ai/install | bash
-
-# Package managers
-npm i -g opencode-ai@latest        # or bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS and Linux (recommended, always up to date)
-brew install opencode              # macOS and Linux (official brew formula, updated less)
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-bin               # Arch Linux (Latest from AUR)
-mise use -g opencode               # Any OS
-nix run nixpkgs#opencode           # or github:anomalyco/opencode for latest dev branch
+rtfm  › You want an AbortController. Three steps:
+        1. Create one per request, inside the effect, and pass its `signal` in
+           the options you give `fetch(resource, options)`.
+           MDN: https://developer.mozilla.org/en-US/docs/Web/API/AbortController
+        2. Return a cleanup function from the effect that calls `abort()` on it.
+           React docs, "Fetching data": https://react.dev/reference/react/useEffect#fetching-data-with-effects
+        3. An aborted fetch rejects with an AbortError. Decide whether your
+           catch should ignore that one specifically; check its `name`.
+        Trap: if you create the controller outside the effect, every render
+        shares one, and the second request is born already aborted.
 ```
 
-> [!TIP]
-> Remove versions older than 0.1.x before installing.
+## It actually can't write code
 
-### Desktop App (BETA)
+Telling a model "don't write code" is a suggestion. rtfm enforces it.
 
-OpenCode is also available as a desktop application. Download directly from the [releases page](https://github.com/anomalyco/opencode/releases) or [opencode.ai/download](https://opencode.ai/download).
+- **The output is filtered.** Every token the model streams passes through a filter before it is saved or drawn on screen. Fenced code blocks are withheld. Inline code survives only if it's a name, a path, a shell command or a signature quoted from the docs (`useEffect`, `fetch(resource, options)`, `npm i zod`). Anything you could paste as a statement (`x = 1`, `items.map((i) => i.id)`) is replaced with `✎ yours to write`. Code is held back a line at a time, so it never shows up even briefly mid-stream. See [`code-guard.ts`](packages/opencode/src/rtfm/code-guard.ts).
+- **Its tools are read-only.** It can read your project, search it, fetch docs and search the web. It has no edit, write or patch tools, and its shell is limited to read-only git (`git diff`, `git log`, `git show`, `git status`, `git blame`). That lock is applied last, so a config file can't turn editing back on.
 
-| Platform              | Download                           |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-windows-x64.exe` |
-| Linux                 | `.deb`, `.rpm`, or `.AppImage`     |
+## Two modes, Tab to switch
 
-```bash
-# macOS (Homebrew)
-brew install --cask opencode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/opencode-desktop
+| | `mentor` (default) | `review` |
+|---|---|---|
+| Reads your code | yes, for context | yes, plus your `git diff` |
+| Feedback | concepts and next steps; you find the exact spot | `path:line` pointers, ranked by severity |
+| Writes the fix | never | never |
+
+## Install
+
+```sh
+npm i -g rtfm-cli            # or: bun add -g rtfm-cli
+brew install varunbln/tap/rtfm
 ```
 
-#### Installation Directory
+Then run `rtfm` in your project. Bring a key for any provider (`/connect` inside the app, or `rtfm providers login`): Anthropic, OpenAI, Google, OpenRouter, DeepSeek, Groq, a local Ollama, and the 75+ others opencode supports.
 
-The install script respects the following priority order for the installation path:
+## How it helps
 
-1. `$OPENCODE_INSTALL_DIR` - Custom installation directory
-2. `$XDG_BIN_DIR` - XDG Base Directory Specification compliant path
-3. `$HOME/bin` - Standard user binary directory (if it exists or can be created)
-4. `$HOME/.opencode/bin` - Default fallback
+- **Next step, not the whole road.** One to three things you can do in the next ten minutes. Come back when they're done.
+- **Always the source.** Every API it mentions comes with a link it has fetched and checked: the official docs section, the spec, the library's README, or the canonical Stack Overflow answer. If it couldn't verify a link, it tells you what to search for instead.
+- **Hints get more specific.** Concept, then the API, then the doc section that matters, then a precise description in words of what the line must do. It never crosses into writing the line.
+- **Debugging is shared detective work.** It tells you what to log, where to break and what each result would mean, and what the error message is literally saying.
 
-```bash
-# Examples
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
-```
+## Config
 
-### Agents
+rtfm reads `~/.config/rtfm/rtfm.json` and `rtfm.json` or `.rtfm/` in your project, using the same schema as opencode. It reads your `AGENTS.md`. Model, theme, keybinds and providers are all configurable. Edit tools and the shell lock are not.
 
-OpenCode includes two built-in agents you can switch between with the `Tab` key.
+## Credits
 
-- **build** - Default, full-access agent for development work
-- **plan** - Read-only agent for analysis and code exploration
-  - Denies file edits by default
-  - Asks permission before running bash commands
-  - Ideal for exploring unfamiliar codebases or planning changes
+rtfm is a fork of [opencode](https://github.com/anomalyco/opencode) (MIT), which does the hard parts: the TUI, the provider layer and the session engine. rtfm adds the mentor agents, the streaming code filter and the lockdown. It is not affiliated with the opencode team; please file rtfm issues [here](https://github.com/varunbln/rtfm/issues). See [NOTICE](NOTICE).
 
-Also included is a **general** subagent for complex searches and multistep tasks.
-This is used internally and can be invoked using `@general` in messages.
-
-Learn more about [agents](https://opencode.ai/docs/agents).
-
-### Documentation
-
-For more info on how to configure OpenCode, [**head over to our docs**](https://opencode.ai/docs).
-
-### Contributing
-
-If you're interested in contributing to OpenCode, please read our [contributing docs](./CONTRIBUTING.md) before submitting a pull request.
-
-### Building on OpenCode
-
-If you are working on a project that's related to OpenCode and is using "opencode" as part of its name, for example "opencode-dashboard" or "opencode-mobile", please add a note to your README to clarify that it is not built by the OpenCode team and is not affiliated with us in any way.
-
----
-
-**Join our community** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+MIT licensed.

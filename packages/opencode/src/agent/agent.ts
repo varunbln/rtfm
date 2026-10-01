@@ -14,6 +14,9 @@ import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+import PROMPT_MENTOR from "./prompt/mentor.txt"
+import PROMPT_MENTOR_MODE from "./prompt/mentor-mode.txt"
+import PROMPT_REVIEW_MODE from "./prompt/review-mode.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@opencode-ai/core/global"
@@ -32,6 +35,37 @@ import { Reference } from "@opencode-ai/core/reference"
 import { Location } from "@opencode-ai/core/location"
 import { PluginV2 } from "@opencode-ai/core/plugin"
 
+// rtfm: the only tools any agent gets. Edits, writes, patches, subagents that
+// could edit, and every shell command except read-only git are denied.
+const lockdown = (externalDirectory: Record<string, "allow" | "ask" | "deny">) =>
+  Permission.fromConfig({
+    "*": "deny",
+    doom_loop: "ask",
+    external_directory: externalDirectory,
+    read: { "*": "allow", "*.env": "ask", "*.env.*": "ask", "*.env.example": "allow" },
+    grep: "allow",
+    glob: "allow",
+    list: "allow",
+    lsp: "allow",
+    webfetch: "allow",
+    websearch: "allow",
+    question: "allow",
+    todowrite: "allow",
+    skill: "allow",
+    task: { "*": "deny", explore: "allow" },
+    bash: {
+      "*": "deny",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git show*": "allow",
+      "git blame*": "allow",
+      "git branch": "allow",
+      "*>*": "deny",
+      "*--output*": "deny",
+      "*--ext-diff*": "deny",
+    },
+  })
 export const Info = Schema.Struct({
   name: Schema.String,
   description: Schema.optional(Schema.String),
@@ -138,60 +172,25 @@ const layer = Layer.effect(
         const user = Permission.fromConfig(cfg.permission ?? {})
 
         const agents: Record<string, Info> = {
-          build: {
-            name: "build",
-            description: "The default agent. Executes tools based on configured permissions.",
+          mentor: {
+            name: "mentor",
+            description: "Tells you what to write next and where the docs are. Never writes code.",
             options: {},
-            permission: Permission.merge(
-              defaults,
-              Permission.fromConfig({
-                question: "allow",
-                plan_enter: "allow",
-              }),
-              user,
-            ),
+            permission: Permission.merge(defaults, Permission.fromConfig({ question: "allow" }), user),
+            prompt: [PROMPT_MENTOR, PROMPT_MENTOR_MODE].join("\n\n"),
             mode: "primary",
             native: true,
           },
-          plan: {
-            name: "plan",
-            description: "Plan mode. Disallows all edit tools.",
+          review: {
+            name: "review",
+            description:
+              "Mentor with review on: reads your diff and points at exact lines. Still never writes the fix.",
             options: {},
-            permission: Permission.merge(
-              defaults,
-              Permission.fromConfig({
-                question: "allow",
-                plan_exit: "allow",
-                task: {
-                  general: "deny",
-                },
-                external_directory: {
-                  [path.join(Global.Path.data, "plans", "*")]: "allow",
-                },
-                edit: {
-                  "*": "deny",
-                  [path.join(".opencode", "plans", "*.md")]: "allow",
-                  [path.relative(ctx.worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow",
-                },
-              }),
-              user,
-            ),
+            permission: Permission.merge(defaults, Permission.fromConfig({ question: "allow" }), user),
+            prompt: [PROMPT_MENTOR, PROMPT_REVIEW_MODE].join("\n\n"),
             mode: "primary",
             native: true,
-          },
-          general: {
-            name: "general",
-            description: `General-purpose agent for researching complex questions and executing multi-step tasks. Use this agent to execute multiple units of work in parallel.`,
-            permission: Permission.merge(
-              defaults,
-              Permission.fromConfig({
-                todowrite: "deny",
-              }),
-              user,
-            ),
-            options: {},
-            mode: "subagent",
-            native: true,
+            color: "warning",
           },
           explore: {
             name: "explore",
@@ -202,7 +201,6 @@ const layer = Layer.effect(
                 grep: "allow",
                 glob: "allow",
                 list: "allow",
-                bash: "allow",
                 webfetch: "allow",
                 websearch: "allow",
                 read: "allow",
@@ -293,6 +291,17 @@ const layer = Layer.effect(
           item.permission = Permission.merge(item.permission, Permission.fromConfig(value.permission ?? {}))
         }
 
+        // rtfm: applied last so neither user config nor an agent definition can
+        // hand any agent a way to change files. findLast wins in Permission.
+        for (const name in agents) {
+          agents[name].permission = Permission.merge(
+            agents[name].permission,
+            lockdown(readonlyExternalDirectory),
+            // subagents never spawn further subagents
+            agents[name].mode === "subagent" ? Permission.fromConfig({ task: "deny" }) : [],
+          )
+        }
+
         // Ensure Truncate.GLOB is allowed unless explicitly configured
         for (const name in agents) {
           const agent = agents[name]
@@ -319,7 +328,7 @@ const layer = Layer.effect(
             agents,
             values(),
             sortBy(
-              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "build"), "desc"],
+              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "mentor"), "desc"],
               [(x) => x.name, "asc"],
             ),
           )

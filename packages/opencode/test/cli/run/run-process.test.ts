@@ -164,7 +164,8 @@ describe("opencode run (non-interactive subprocess)", () => {
     30_000,
   )
 
-  cliIt.concurrent(
+  // rtfm: every agent is locked to read-only tools, so the bash tool call this drives is denied even with --dangerously-skip-permissions (that is the point).
+  cliIt.skip(
     "--format json preserves reasoning, tool, and continuation ordering",
     ({ llm, opencode }) =>
       Effect.gen(function* () {
@@ -248,7 +249,8 @@ describe("opencode run (non-interactive subprocess)", () => {
     60_000,
   )
 
-  cliIt.concurrent(
+  // rtfm: every agent is locked to read-only tools, so the bash tool call this drives is denied even with --dangerously-skip-permissions (that is the point).
+  cliIt.skip(
     "rejects requested permissions by default and allows them with the dangerous flag",
     ({ home, llm, opencode }) =>
       Effect.gen(function* () {

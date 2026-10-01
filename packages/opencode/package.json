@@ -16,7 +16,7 @@
     "dev:temporary": "bun run ./src/temporary.ts"
   },
   "bin": {
-    "opencode": "./bin/opencode"
+    "rtfm": "./bin/rtfm"
   },
   "exports": {
     "./*": "./src/*.ts"
@@ -153,5 +153,6 @@
   },
   "overrides": {
     "drizzle-orm": "catalog:"
-  }
+  },
+  "rtfmVersion": "0.1.0"
 }

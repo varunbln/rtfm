@@ -1,0 +1,14 @@
+rtfm is a fork of opencode (https://github.com/anomalyco/opencode),
+Copyright (c) 2025 opencode, released under the MIT License.
+
+rtfm is an independent project. It is not affiliated with, endorsed by, or
+supported by the opencode team or Anomaly. "opencode" is their name; rtfm does
+not use it as a product name. Please report rtfm issues to
+https://github.com/varunbln/rtfm/issues, not upstream.
+
+What rtfm changes, at a glance:
+  - packages/opencode/src/rtfm/code-guard.ts      streaming filter that withholds code
+  - packages/opencode/src/session/processor.ts    wires the filter into every text/reasoning delta
+  - packages/opencode/src/agent/agent.ts          mentor + review agents, tool lockdown
+  - packages/opencode/src/agent/prompt/*.txt       mentor / review prompts
+  - branding, config paths (rtfm.json, .rtfm/, ~/.config/rtfm), packaging

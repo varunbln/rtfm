@@ -24,8 +24,8 @@ const layer = Layer.effect(
     const flags = yield* RuntimeFlags.Service
 
     const share = Effect.fn("SessionShare.share")(function* (sessionID: SessionID) {
-      const conf = yield* cfg.get()
-      if (conf.share === "disabled") throw new Error("Sharing is disabled in configuration")
+      // rtfm: upstream shares to opencode.ai. rtfm has no share service of its own yet.
+      throw new Error("Sharing is not available in rtfm")
       const result = yield* shareNext.create(sessionID)
       yield* session.setShare({ sessionID, share: { url: result.url } })
       return result
