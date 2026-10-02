@@ -7,11 +7,11 @@
 </pre>
 </p>
 
-<p align="center"><b>A coding agent that refuses to write your code.</b></p>
+<p align="center"><b>A coding tutor for your terminal that helps you write the code yourself.</b></p>
 
-rtfm is a terminal coding agent with one rule: **it never writes a line of code.** You tell it what you're building. It tells you what to write next, explains why, and links the exact section of the docs, or the one Stack Overflow answer you needed. You type the code.
+rtfm is a terminal coding assistant built for learning. You tell it what you're working on, and it explains the next step, why it works, and links the exact section of the docs, or the one Stack Overflow answer you needed. You write the code.
 
-It's for programmers who want to stay programmers. You get the speed of having a senior engineer next to you, and you keep the part where you actually learn the thing.
+It's for the times you want to understand what you're building: picking up programming, a new language or framework, a course project, or an unfamiliar codebase. AI that writes code for you is great when you just need something built. rtfm is for when you'd like to build it yourself, with a patient helper next to you.
 
 ```
 you   › how do I cancel an in-flight fetch when the component unmounts?
@@ -28,20 +28,20 @@ rtfm  › You want an AbortController. Three steps:
         shares one, and the second request is born already aborted.
 ```
 
-## It actually can't write code
+## How it keeps the code in your hands
 
-Telling a model "don't write code" is a suggestion. rtfm enforces it.
+Asking a model not to write code works most of the time. rtfm makes sure of it, so you never get handed the answer by accident.
 
-- **The output is filtered.** Every token the model streams passes through a filter before it is saved or drawn on screen. Fenced code blocks are withheld. Inline code survives only if it's a name, a path, a shell command or a signature quoted from the docs (`useEffect`, `fetch(resource, options)`, `npm i zod`). Anything you could paste as a statement (`x = 1`, `items.map((i) => i.id)`) is replaced with `✎ yours to write`. Code is held back a line at a time, so it never shows up even briefly mid-stream. See [`code-guard.ts`](packages/opencode/src/rtfm/code-guard.ts).
-- **Its tools are read-only.** It can read your project, search it, fetch docs and search the web. It has no edit, write or patch tools, and its shell is limited to read-only git (`git diff`, `git log`, `git show`, `git status`, `git blame`). That lock is applied last, so a config file can't turn editing back on.
+- **The output is filtered.** Every token the model streams passes through a filter before it is saved or drawn on screen. Fenced code blocks are withheld. Inline code survives only if it's a name, a path, a shell command or a signature quoted from the docs (`useEffect`, `fetch(resource, options)`, `npm i zod`). Anything you could paste as a statement (`x = 1`, `items.map((i) => i.id)`) is replaced with `✎ yours to write`. Text is checked a line at a time, so code doesn't flash up mid-stream either. See [`code-guard.ts`](packages/opencode/src/rtfm/code-guard.ts).
+- **Its tools are read-only.** It can read your project, search it, fetch docs and search the web. It has no edit, write or patch tools, and its shell is limited to read-only git (`git diff`, `git log`, `git show`, `git status`, `git blame`). That setting is applied last, so it stays consistent whatever is in your config.
 
 ## Two modes, Tab to switch
 
 | | `mentor` (default) | `review` |
 |---|---|---|
 | Reads your code | yes, for context | yes, plus your `git diff` |
-| Feedback | concepts and next steps; you find the exact spot | `path:line` pointers, ranked by severity |
-| Writes the fix | never | never |
+| Feedback | concepts and next steps; room to find the spot yourself | `path:line` pointers, ranked by importance |
+| Writes the fix | no, that's yours | no, that's yours |
 
 ## Install
 
@@ -56,8 +56,8 @@ Then run `rtfm` in your project. Bring a key for any provider (`/connect` inside
 
 - **Next step, not the whole road.** One to three things you can do in the next ten minutes. Come back when they're done.
 - **Always the source.** Every API it mentions comes with a link it has fetched and checked: the official docs section, the spec, the library's README, or the canonical Stack Overflow answer. If it couldn't verify a link, it tells you what to search for instead.
-- **Hints get more specific.** Concept, then the API, then the doc section that matters, then a precise description in words of what the line must do. It never crosses into writing the line.
-- **Debugging is shared detective work.** It tells you what to log, where to break and what each result would mean, and what the error message is literally saying.
+- **Hints get more specific when you need them.** Concept, then the API, then the doc section that matters, then a precise description in words of what the line should do.
+- **Debugging together.** It explains what the error message means, what to log or where to set a breakpoint, and what each result would tell you.
 
 ## Config
 

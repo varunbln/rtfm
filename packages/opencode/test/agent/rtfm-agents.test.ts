@@ -52,8 +52,8 @@ it.instance("mentor and review get different mode prompts on the same base", () 
   Effect.gen(function* () {
     const mentor = yield* load((svc) => svc.get("mentor"))
     const review = yield* load((svc) => svc.get("review"))
-    expect(mentor?.prompt).toContain("You never write code")
-    expect(review?.prompt).toContain("You never write code")
+    expect(mentor?.prompt).toContain("You don't write code for them")
+    expect(review?.prompt).toContain("You don't write code for them")
     expect(mentor?.prompt).toContain("Review mode is OFF")
     expect(review?.prompt).toContain("Review mode is ON")
   }),

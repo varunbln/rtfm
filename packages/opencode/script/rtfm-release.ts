@@ -57,7 +57,7 @@ await Bun.write(
     {
       name: NPM_NAME,
       version,
-      description: "A coding agent that refuses to write your code. It tells you what to write and links the docs.",
+      description: "A coding tutor for your terminal: it explains the next step and links the docs, and you write the code.",
       license: "MIT",
       homepage: `https://github.com/${REPO}`,
       repository: { type: "git", url: `git+https://github.com/${REPO}.git` },
@@ -83,7 +83,7 @@ const sha = async (file: string) => (await $`shasum -a 256 ${file}`.text()).spli
 const asset = (file: string) => `https://github.com/${REPO}/releases/download/v${version}/${file}`
 const formula = [
   "class Rtfm < Formula",
-  '  desc "Coding agent that refuses to write your code"',
+  '  desc "Coding tutor that helps you write the code yourself"',
   `  homepage "https://github.com/${REPO}"`,
   `  version "${version}"`,
   '  license "MIT"',

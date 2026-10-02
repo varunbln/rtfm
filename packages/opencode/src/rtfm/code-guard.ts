@@ -16,7 +16,7 @@
 // arrives (or the part ends) so a fence or backtick span split across deltas
 // is classified as a whole.
 
-export const FENCE_NOTICE = "> ✎ rtfm withheld a code block. That part is yours to write."
+export const FENCE_NOTICE = "> ✎ rtfm left this part for you to write."
 export const INLINE_NOTICE = "`✎ yours to write`"
 
 const FENCE = /^ {0,3}(`{3,}|~{3,})/

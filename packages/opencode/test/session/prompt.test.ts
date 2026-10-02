@@ -547,7 +547,7 @@ it.instance("rtfm: code the model streams never reaches the stored reply", () =>
     const text = result.parts.flatMap((p) => (p.type === "text" ? [p.text] : [])).join("")
     expect(text).not.toContain("const debounce")
     expect(text).not.toContain("const x = 1")
-    expect(text).toContain("rtfm withheld a code block")
+    expect(text).toContain("rtfm left this part for you to write")
     expect(text).toContain("`setTimeout(callback, delay)`")
   }),
 )

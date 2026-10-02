@@ -162,14 +162,14 @@ export function Tips(props: { api: TuiPluginApi; connected?: boolean }) {
 }
 
 const TIPS: Tip[] = [
-  (shortcuts) => press(shortcuts.agentCycle(), "to toggle review mode: line-by-line feedback on what you wrote"),
-  "rtfm never writes code. Ask what to do next, not for the answer",
-  "Stuck? Say what you tried and what happened. The next hint gets more specific",
+  (shortcuts) => press(shortcuts.agentCycle(), "to switch to review mode for feedback on what you wrote"),
+  "rtfm explains and points you to the docs. You write the code",
+  "Stuck? Say what you tried. The next hint will be more specific",
   "Ask {highlight}where is this documented?{/highlight} to get the exact docs section",
   "In review mode, rtfm reads your {highlight}git diff{/highlight} and points at {highlight}file:line{/highlight}",
   "Type {highlight}@{/highlight} followed by a filename to attach it to your question",
   "Start a message with {highlight}!{/highlight} to run a shell command yourself (e.g., {highlight}!npm test{/highlight})",
-  "Paste the exact error message. rtfm will explain what it literally says",
+  "Paste the exact error message and rtfm will walk you through it",
   "Drag and drop a screenshot of the error into the terminal",
   (shortcuts) => `Use ${commandText("/models", shortcuts.modelList())} to switch models`,
   "Run {highlight}/connect{/highlight} to add an API key for any provider",
