@@ -21,11 +21,10 @@ if (!version) throw new Error("set RTFM_VERSION or package.json rtfmVersion")
 const publish = process.argv.includes("--publish")
 
 await $`rm -rf dist`
-await $`bun run script/build.ts --skip-embed-web-ui ${process.argv.includes("--single") ? ["--single"] : []}`.env({
+await $`bun run script/build.ts --skip-embed-web-ui --skip-install ${process.argv.includes("--single") ? ["--single"] : []}`.env({
   ...process.env,
   OPENCODE_VERSION: version,
   OPENCODE_CHANNEL: "latest",
-  OPENCODE_RELEASE: "1",
 })
 
 const binaries: Record<string, string> = {}
@@ -35,22 +34,15 @@ for (const file of new Bun.Glob("*/package.json").scanSync({ cwd: "./dist" })) {
 }
 console.log("binaries", binaries)
 
-// Main package: a postinstall copies the right platform binary into bin/rtfm.exe.
+// Main package: bin/rtfm launcher + an optional postinstall that caches the binary.
 const main = `./dist/${NPM_NAME}`
 await $`mkdir -p ${main}/bin`
 await $`cp ./script/postinstall.mjs ${main}/postinstall.mjs`
 await $`cp ../../LICENSE ${main}/LICENSE`
 await $`cp ../../NOTICE ${main}/NOTICE`
 await $`cp ../../README.md ${main}/README.md`
-await Bun.write(
-  `${main}/bin/rtfm.exe`,
-  [
-    `echo "Error: ${NPM_NAME}'s postinstall script was not run (--ignore-scripts, or pnpm)." >&2`,
-    `echo "Fix: cd node_modules/${NPM_NAME} && node postinstall.mjs" >&2`,
-    "exit 1",
-    "",
-  ].join("\n"),
-)
+// The command is the launcher, so it works even when install scripts are skipped.
+await $`cp ./bin/rtfm ${main}/bin/rtfm`
 await Bun.write(
   `${main}/package.json`,
   JSON.stringify(
@@ -62,7 +54,7 @@ await Bun.write(
       homepage: `https://github.com/${REPO}`,
       repository: { type: "git", url: `git+https://github.com/${REPO}.git` },
       keywords: ["cli", "ai", "mentor", "learning", "terminal", "opencode"],
-      bin: { rtfm: "./bin/rtfm.exe" },
+      bin: { rtfm: "./bin/rtfm" },
       scripts: { postinstall: "node ./postinstall.mjs" },
       os: ["darwin", "linux", "win32"],
       cpu: ["arm64", "x64"],

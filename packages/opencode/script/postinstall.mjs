@@ -26,7 +26,11 @@ const platform = platformMap[os.platform()] ?? os.platform()
 const arch = archMap[os.arch()] ?? os.arch()
 const base = `rtfm-cli-${platform}-${arch}`
 const sourceBinary = platform === "windows" ? "rtfm.exe" : "rtfm"
-const targetBinary = path.join(__dirname, "bin", "rtfm.exe")
+// rtfm: the `rtfm` command is the Node launcher (bin/rtfm), which finds the
+// platform binary at runtime. This script only caches it next to the launcher
+// as a speed-up, so package managers that skip install scripts (bun, pnpm)
+// still get a working command.
+const targetBinary = path.join(__dirname, "bin", ".rtfm")
 
 function supportsAvx2() {
   if (arch !== "x64") return false
@@ -183,7 +187,6 @@ function main() {
 
 try {
   main()
-} catch (error) {
-  console.error(error.message)
-  process.exit(1)
+} catch {
+  // not fatal: bin/rtfm resolves the platform package itself
 }
