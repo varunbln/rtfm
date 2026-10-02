@@ -24,8 +24,9 @@ rtfm  › You want an AbortController. Three steps:
            React docs, "Fetching data": https://react.dev/reference/react/useEffect#fetching-data-with-effects
         3. An aborted fetch rejects with an AbortError. Decide whether your
            catch should ignore that one specifically; check its `name`.
-        Trap: if you create the controller outside the effect, every render
-        shares one, and the second request is born already aborted.
+        Trap: don't reuse one controller across requests (say, at module
+        level or in a ref). Once aborted it stays aborted, so every later
+        fetch with its signal fails immediately.
 ```
 
 ## How it keeps the code in your hands
