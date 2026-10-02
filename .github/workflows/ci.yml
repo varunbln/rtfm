@@ -18,3 +18,5 @@ jobs:
         working-directory: packages/opencode
       - run: bun test --timeout 30000
         working-directory: packages/opencode
+      - run: bun test
+        working-directory: packages/tui

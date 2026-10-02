@@ -61,6 +61,7 @@ import { DialogConfirm } from "./ui/dialog-confirm"
 import { ToastProvider, useToast } from "./ui/toast"
 import { isDefaultTitle } from "./util/session"
 import { KVProvider, useKV } from "./context/kv"
+import { DialogOnboarding, ONBOARDED_KEY } from "./component/dialog-onboarding"
 import * as Model from "./util/model"
 import { ArgsProvider, useArgs, type Args } from "./context/args"
 import { openUrl } from "@opencode-ai/core/open"
@@ -539,12 +540,37 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
     })
   })
 
+  // rtfm: first launch walks through what rtfm is before anything else, then
+  // hands off to /connect when no provider is set up yet.
+  const showOnboarding = (onDone?: () => void) => {
+    let done = false
+    const finish = () => {
+      if (done) return
+      done = true
+      kv.set(ONBOARDED_KEY, true)
+      // runs inside dialog.clear(); open the next dialog after the clear lands
+      if (onDone) setTimeout(onDone, 0)
+    }
+    dialog.replace(() => <DialogOnboarding onDone={finish} />, finish)
+  }
+  let onboardingChecked = false
+  createEffect(() => {
+    if (onboardingChecked || !kv.ready || sync.status !== "complete") return
+    onboardingChecked = true
+    if (kv.get(ONBOARDED_KEY)) return
+    showOnboarding(() => {
+      if (sync.data.provider.length === 0) dialog.replace(() => <DialogProviderList />)
+    })
+  })
+
   createEffect(
     on(
-      () => sync.status === "complete" && sync.data.provider.length === 0,
+      () => sync.status === "complete" && kv.ready && sync.data.provider.length === 0,
       (isEmpty, wasEmpty) => {
         // only trigger when we transition into an empty-provider state
         if (!isEmpty || wasEmpty) return
+        // first launch: onboarding opens /connect itself when it finishes
+        if (!kv.get(ONBOARDED_KEY)) return
         dialog.replace(() => <DialogProviderList />)
       },
     ),
@@ -736,6 +762,14 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         run: () => {
           local.agent.move(-1)
         },
+      },
+      {
+        name: "rtfm.welcome",
+        title: "Show the rtfm walkthrough",
+        slashName: "welcome",
+        slashAliases: ["onboarding", "intro"],
+        run: () => showOnboarding(),
+        category: "System",
       },
       {
         name: "provider.connect",
