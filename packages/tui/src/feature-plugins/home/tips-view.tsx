@@ -167,6 +167,8 @@ const TIPS: Tip[] = [
   "Stuck? Say what you tried. The next hint will be more specific",
   "Ask {highlight}where is this documented?{/highlight} to get the exact docs section",
   "In review mode, rtfm reads your {highlight}git diff{/highlight} and points at {highlight}file:line{/highlight}",
+  "Run rtfm in the terminal of your editor app of choice (e.g. VS Code) and {highlight}cmd+click{/highlight} a {highlight}file:line{/highlight} to jump there",
+  "Use {highlight}/sidebar{/highlight} or {highlight}ctrl+x b{/highlight} to hide or show the session sidebar",
   "Type {highlight}@{/highlight} followed by a filename to attach it to your question",
   "Start a message with {highlight}!{/highlight} to run a shell command yourself (e.g., {highlight}!npm test{/highlight})",
   "Paste the exact error message and rtfm will walk you through it",

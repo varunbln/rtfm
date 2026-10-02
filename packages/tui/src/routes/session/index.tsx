@@ -468,7 +468,8 @@ export function Session() {
       value: "session.share",
       suggested: route.type === "session",
       category: "Session",
-      enabled: sync.data.config.share !== "disabled",
+      // rtfm: sharing goes to opencode.ai and is disabled in rtfm
+      enabled: false,
       slash: {
         name: "share",
       },
@@ -672,6 +673,9 @@ export function Session() {
     {
       title: sidebarVisible() ? "Hide sidebar" : "Show sidebar",
       value: "session.sidebar.toggle",
+      slash: {
+        name: "sidebar",
+      },
       category: "Session",
       run: () => {
         batch(() => {

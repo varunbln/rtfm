@@ -52,6 +52,7 @@ export const STEPS: Step[] = [
       { text: "Paste the exact error and it'll walk you through what it means.", key: "2" },
       { text: "If a hint isn't enough, just say so. The next one will be more specific.", key: "3" },
       { text: "Ask \"where is this documented?\" any time.", key: "4" },
+      { text: "Run it in your editor app's terminal (e.g. VS Code) to cmd+click file:line links.", key: "5" },
       { text: "" },
       { text: "/connect adds a model key  ·  /welcome shows this again", muted: true },
     ],

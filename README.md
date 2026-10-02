@@ -50,7 +50,7 @@ npm i -g rtfm-cli            # or: bun add -g rtfm-cli
 brew install varunbln/tap/rtfm
 ```
 
-Then run `rtfm` in your project. Bring a key for any provider (`/connect` inside the app, or `rtfm providers login`): Anthropic, OpenAI, Google, OpenRouter, DeepSeek, Groq, a local Ollama, and the 75+ others opencode supports.
+Then run `rtfm` in your project. It works best in the built-in terminal of your editor app of choice (e.g. VS Code): the file references rtfm gives you (`src/cart.ts:42`) become cmd/ctrl+click links that open that line in your editor. Bring a key for any provider (`/connect` inside the app, or `rtfm providers login`): Anthropic, OpenAI, Google, OpenRouter, DeepSeek, Groq, a local Ollama, and the 75+ others opencode supports.
 
 ## How it helps
 
