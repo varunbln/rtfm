@@ -402,6 +402,8 @@ export function Autocomplete(props: {
   const agents = createMemo(() => {
     return sync.data.agent
       .filter((agent) => !agent.hidden && agent.mode !== "primary")
+      // rtfm: explore is the mentor's internal search helper; in the @ list it reads like a file
+      .filter((agent) => agent.name !== "explore")
       .map(
         (agent): AutocompleteOption => ({
           display: "@" + agent.name,
