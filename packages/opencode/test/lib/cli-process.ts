@@ -532,5 +532,9 @@ export const cliIt = {
       () => Effect.runPromise(Effect.scoped(withCliFixture(body))),
       opts,
     ),
-  skip: (name: string, ..._rest: unknown[]) => test.skip(name, () => {}),
+  skip: <A, E>(
+    name: string,
+    body: (input: CliFixture) => Effect.Effect<A, E, Scope.Scope | HttpClient.HttpClient>,
+    opts?: number | TestOptions,
+  ) => test.skip(name, () => Effect.runPromise(Effect.scoped(withCliFixture(body))), opts),
 }

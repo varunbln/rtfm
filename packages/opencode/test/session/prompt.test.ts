@@ -1064,6 +1064,8 @@ noLLMServer.instance("prompt tools replace previous prompt tool rules", () =>
     expect(reloaded.permission).toEqual([{ permission: "read", pattern: "*", action: "allow" }])
     expect(Permission.evaluate("bash", "anything", reloaded.permission ?? []).action).toBe("ask")
   }),
+  // rtfm: no keyless default provider, so give the session a model to resolve
+  { config: cfg },
 )
 
 it.instance(
