@@ -25,7 +25,6 @@ import { isRecord } from "@/util/record"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Database } from "@opencode-ai/core/database/database"
 import { Usage, type LLMEvent } from "@opencode-ai/llm"
-import { CodeGuard } from "@/rtfm/code-guard"
 
 const DOOM_LOOP_THRESHOLD = 3
 export type Result = "compact" | "stop" | "continue"
@@ -73,8 +72,6 @@ interface ProcessorContext extends Input {
   needsCompaction: boolean
   currentText: SessionV1.TextPart | undefined
   reasoningMap: Record<string, SessionV1.ReasoningPart>
-  // rtfm: one CodeGuard per streaming text/reasoning part, keyed by part id
-  guards: Record<string, CodeGuard>
 }
 
 type StreamEvent = LLMEvent
@@ -114,27 +111,7 @@ const layer = Layer.effect(
         needsCompaction: false,
         currentText: undefined,
         reasoningMap: {},
-        guards: {},
       }
-      // rtfm: everything the model streams goes through a CodeGuard first.
-      const guard = (partID: string, delta: string) => (ctx.guards[partID] ??= new CodeGuard()).push(delta)
-      // Flushes a part's held-back partial line, publishing it as a delta like
-      // any other so listeners that build text from deltas see it too.
-      const release = Effect.fn("SessionProcessor.release")(function* (
-        part: SessionV1.TextPart | SessionV1.ReasoningPart,
-      ) {
-        const tail = ctx.guards[part.id]?.flush() ?? ""
-        delete ctx.guards[part.id]
-        if (!tail) return ""
-        yield* session.updatePartDelta({
-          sessionID: part.sessionID,
-          messageID: part.messageID,
-          partID: part.id,
-          field: "text",
-          delta: tail,
-        })
-        return tail
-      })
       let aborted = false
 
       const parse = (e: unknown) =>
@@ -229,7 +206,8 @@ const layer = Layer.effect(
 
       const finishReasoning = Effect.fn("SessionProcessor.finishReasoning")(function* (reasoningID: string) {
         if (!(reasoningID in ctx.reasoningMap)) return
-        ctx.reasoningMap[reasoningID].text += yield* release(ctx.reasoningMap[reasoningID])
+        // oxlint-disable-next-line no-self-assign -- reactivity trigger
+        ctx.reasoningMap[reasoningID].text = ctx.reasoningMap[reasoningID].text
         ctx.reasoningMap[reasoningID].time = { ...ctx.reasoningMap[reasoningID].time, end: Date.now() }
         yield* session.updatePart(ctx.reasoningMap[reasoningID])
         delete ctx.reasoningMap[reasoningID]
@@ -316,19 +294,15 @@ const layer = Layer.effect(
           case "reasoning-delta":
             // Match dev: silently drop orphan deltas (no preceding reasoning-start).
             if (!(value.id in ctx.reasoningMap)) return
+            ctx.reasoningMap[value.id].text += value.text
             if (value.providerMetadata) ctx.reasoningMap[value.id].metadata = value.providerMetadata
-            {
-              const delta = guard(ctx.reasoningMap[value.id].id, value.text)
-              if (!delta) return
-              ctx.reasoningMap[value.id].text += delta
-              yield* session.updatePartDelta({
-                sessionID: ctx.reasoningMap[value.id].sessionID,
-                messageID: ctx.reasoningMap[value.id].messageID,
-                partID: ctx.reasoningMap[value.id].id,
-                field: "text",
-                delta,
-              })
-            }
+            yield* session.updatePartDelta({
+              sessionID: ctx.reasoningMap[value.id].sessionID,
+              messageID: ctx.reasoningMap[value.id].messageID,
+              partID: ctx.reasoningMap[value.id].id,
+              field: "text",
+              delta: value.text,
+            })
             return
 
           case "reasoning-end":
@@ -538,24 +512,21 @@ const layer = Layer.effect(
 
           case "text-delta":
             if (!ctx.currentText) return
+            ctx.currentText.text += value.text
             if (value.providerMetadata) ctx.currentText.metadata = value.providerMetadata
-            {
-              const delta = guard(ctx.currentText.id, value.text)
-              if (!delta) return
-              ctx.currentText.text += delta
-              yield* session.updatePartDelta({
-                sessionID: ctx.currentText.sessionID,
-                messageID: ctx.currentText.messageID,
-                partID: ctx.currentText.id,
-                field: "text",
-                delta,
-              })
-            }
+            yield* session.updatePartDelta({
+              sessionID: ctx.currentText.sessionID,
+              messageID: ctx.currentText.messageID,
+              partID: ctx.currentText.id,
+              field: "text",
+              delta: value.text,
+            })
             return
 
           case "text-end":
             if (!ctx.currentText) return
-            ctx.currentText.text += yield* release(ctx.currentText)
+            // oxlint-disable-next-line no-self-assign -- reactivity trigger
+            ctx.currentText.text = ctx.currentText.text
             ctx.currentText.text = (yield* plugin.trigger(
               "experimental.text.complete",
               {
@@ -597,7 +568,6 @@ const layer = Layer.effect(
 
         if (ctx.currentText) {
           const end = Date.now()
-          ctx.currentText.text += yield* release(ctx.currentText)
           ctx.currentText.time = { start: ctx.currentText.time?.start ?? end, end }
           yield* session.updatePart(ctx.currentText)
           ctx.currentText = undefined
@@ -605,10 +575,8 @@ const layer = Layer.effect(
 
         for (const part of Object.values(ctx.reasoningMap)) {
           const end = Date.now()
-          const tail = yield* release(part)
           yield* session.updatePart({
             ...part,
-            text: part.text + tail,
             time: { start: part.time.start ?? end, end },
           })
         }
@@ -682,7 +650,6 @@ const layer = Layer.effect(
           yield* Effect.gen(function* () {
             ctx.currentText = undefined
             ctx.reasoningMap = {}
-            ctx.guards = {}
             yield* status.set(ctx.sessionID, { type: "busy" })
             const stream = llm.stream(streamInput)
 

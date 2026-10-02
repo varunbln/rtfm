@@ -14,7 +14,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
         working-directory: packages/opencode
-      - run: bun test --timeout 30000 test/agent test/rtfm-code-guard.test.ts test/session/prompt.test.ts
+      - run: bun test --timeout 30000 test/agent test/session/prompt.test.ts
         working-directory: packages/opencode
       - run: bun test --timeout 30000
         working-directory: packages/opencode

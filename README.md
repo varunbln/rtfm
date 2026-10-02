@@ -30,9 +30,7 @@ rtfm  › You want an AbortController. Three steps:
 
 ## How it keeps the code in your hands
 
-Asking a model not to write code works most of the time. rtfm makes sure of it, so you never get handed the answer by accident.
-
-- **The output is filtered.** Every token the model streams passes through a filter before it is saved or drawn on screen. Fenced code blocks are withheld. Inline code survives only if it's a name, a path, a shell command or a signature quoted from the docs (`useEffect`, `fetch(resource, options)`, `npm i zod`). Anything you could paste as a statement (`x = 1`, `items.map((i) => i.id)`) is replaced with `✎ yours to write`. Text is checked a line at a time, so code doesn't flash up mid-stream either. See [`code-guard.ts`](packages/opencode/src/rtfm/code-guard.ts).
+- **It explains in words.** rtfm is instructed to describe each step rather than write it: it names the functions and APIs to use, quotes signatures from the docs, and points at lines in your own code, but leaves the code you'd paste for you to write. See the [mentor prompt](packages/opencode/src/agent/prompt/mentor.txt).
 - **Its tools are read-only.** It can read your project, search it, fetch docs and search the web. It has no edit, write or patch tools, and its shell is limited to read-only git (`git diff`, `git log`, `git show`, `git status`, `git blame`). That setting is applied last, so it stays consistent whatever is in your config.
 
 ## Two modes, Tab to switch

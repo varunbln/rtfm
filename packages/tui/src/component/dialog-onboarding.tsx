@@ -26,8 +26,8 @@ export const STEPS: Step[] = [
   {
     title: "How it keeps the code in your hands",
     lines: [
-      { text: "It describes each step in words instead of showing code blocks.", key: "✎" },
-      { text: "Names, file paths, commands and signatures from the docs still come through.", key: "`" },
+      { text: "It describes each step in words instead of writing the code for you.", key: "✎" },
+      { text: "It names the APIs to use and points at the lines in your own code.", key: "`" },
       { text: "It can read your project to help, but it doesn't edit your files.", key: "⊘" },
       { text: "" },
       { text: "Ask for the full solution and it'll help you build it one step at a time.", muted: true },

@@ -529,29 +529,6 @@ it.instance("loop exits without an LLM request for interrupted orphan tool calls
   }),
 )
 
-it.instance("rtfm: code the model streams never reaches the stored reply", () =>
-  Effect.gen(function* () {
-    const { llm } = yield* useServerConfig(providerCfg)
-    const prompt = yield* SessionPrompt.Service
-    const sessions = yield* Session.Service
-    const chat = yield* sessions.create({ title: "Pinned" })
-    yield* prompt.prompt({
-      sessionID: chat.id,
-      agent: "mentor",
-      noReply: true,
-      parts: [{ type: "text", text: "just give me the code" }],
-    })
-    yield* llm.text("Fine:\n```ts\nconst debounce = (fn) => fn\n```\nOr inline: `const x = 1`. See `setTimeout(callback, delay)`.")
-
-    const result = yield* prompt.loop({ sessionID: chat.id })
-    const text = result.parts.flatMap((p) => (p.type === "text" ? [p.text] : [])).join("")
-    expect(text).not.toContain("const debounce")
-    expect(text).not.toContain("const x = 1")
-    expect(text).toContain("rtfm left this part for you to write")
-    expect(text).toContain("`setTimeout(callback, delay)`")
-  }),
-)
-
 it.instance("loop calls LLM and returns assistant message", () =>
   Effect.gen(function* () {
     const { llm } = yield* useServerConfig(providerCfg)
